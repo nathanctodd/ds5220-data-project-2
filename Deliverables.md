@@ -1,9 +1,23 @@
 S3 URL for Deliverables: http://ygu6ax-data-project-2.s3-website-us-east-1.amazonaws.com/plot.png
 
 
-Repo URL: 
+Repo URL: https://github.com/nathanctodd/ds5220-data-project-2#
 
 
+Answer to Questions:
+
+1. In the ISS sample application, data is persisted in DynamoDB. If this were a much higher-frequency application (hundreds of writes per minute), what changes would you make to the persistence strategy and why?
+- If the application were to handle hundreds of writes per minute, I would consider switching from DynamoDB to a more scalable and high-throughput database solution, such as Amazon Aurora or Amazon RDS. These relational databases can handle a higher volume of transactions and provide better performance for write-heavy workloads. I would also implement batching of writes to reduce the number of individual write operations, which can further improve performance and reduce costs. This change would ensure that the application can efficiently manage the increased data load without experiencing latency or performance issues.
+
+2. The ISS tracker detects orbital burns by comparing consecutive altitude readings. Describe at least one way this detection logic could produce a false positive, and how you would make it more robust.
+- One way the detection logic could produce a false positive is if there is a temporary glitch or anomaly in the altitude readings, such as a sensor error or a brief communication issue. This would make the readings appear as if there was a decrease in altitude flagging an orbital burn when in reality there was none. To make the detection logic more robust, I would implement a smoothing algorithm or a moving average to filter out noise and anomalies in the altitude data. Additionally, I could set a threshold for the minimum change in altitude required to trigger an orbital burn detection, which would help reduce false positives caused by minor fluctuations in the readings.
+
+
+3. How does each `CronJob` pod get AWS permissions without credentials being passed into the container?
+- Each `CronJob` pod gets AWS permissions through the use of an IAM role that is associated with the EC2 instance running the Kubernetes cluster. The EC2 instance has an IAM instance profile attached to it, which grants the necessary permissions to access AWS services such as DynamoDB and S3. When the `CronJob` pods run on the EC2 instance, they inherit the permissions of the instance profile, allowing them to interact with AWS services without needing to pass explicit credentials into the container. This approach is more secure and simplifies credential management, as it avoids hardcoding sensitive information in the application code or environment variables.
+
+4. Notice the structure of the `iss-tracking` table in DynamoDB. What is the partition key and what is the sort key? Why do these work well in this example, but may not work for other solutions?
+- The partition key for the `iss-tracking` table in DynamoDB is `satellite_id`, and the sort key is `timestamp`. This structure works well in this example because it allows for efficient querying of data based on the satellite's unique identifier and the time of the readings. The partition key ensures that all data for a specific satellite is stored together, while the sort key allows for sorting and retrieving data in chronological order. However, this structure may not work for other solutions if there are multiple satellites being tracked or if there is a need to query data based on different attributes (e.g., altitude or velocity). In such cases, a different partition key and sort key design may be necessary to optimize query performance and accommodate the specific use case.
 
 
 Outputs from command line:
