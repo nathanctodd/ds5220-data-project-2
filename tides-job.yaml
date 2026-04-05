@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tide-tracker
+  namespace: default
+spec:
+  schedule: "0 * * * *"        # every hour on the hour
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: tide-tracker
+              image: ghcr.io/nathanctodd/ds5220-tides:latest
+              imagePullPolicy: Always
+              env:
+                - name: DYNAMODB_TABLE
+                  value: "tide-tracking"
+                - name: S3_BUCKET
+                  value: "ygu6ax-data-project-2"
+                - name: STATION_ID
+                  value: "8518750"
+                - name: STATION_NAME
+                  value: "The Battery, NY"
