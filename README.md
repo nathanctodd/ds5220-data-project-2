@@ -1,5 +1,52 @@
 # DS5220 Data Project 2
 
+
+## Tidal Water Level Pipeline — The Battery, NY
+
+### Data Source
+
+This pipeline collects real-time tidal water level observations from the [NOAA Tides and Currents API](https://api.tidesandcurrents.noaa.gov/api/prod/) — a free, no-key-required REST API maintained by the National Oceanic and Atmospheric Administration. Readings are drawn from station **8518750 (The Battery, New York)**, located at the southern tip of Manhattan where the Hudson River meets New York Harbor. The station reports observed water level in meters relative to the Mean Lower Low Water (MLLW) datum and updates every 6 minutes, making it well suited for hourly sampling. NOAA was chosen because it requires no authentication, provides high-quality sensor data with quality flags included, and produces a naturally periodic signal (the tidal cycle) that is visually clear in a time-series plot.
+
+### Scheduled Process
+
+A Kubernetes CronJob (`tide-tracker`) runs a containerized Python script once per hour (`0 * * * *`). On each execution the script:
+
+1. **Fetches** the latest water level reading from the NOAA API for station 8518750.
+2. **Queries** the `tide-tracking` DynamoDB table for the most recent stored entry and computes the change in water level since the last reading.
+3. **Classifies** the tide direction: `RISING` (level up > 5 cm), `FALLING` (level down > 5 cm), or `SLACK` (near a high or low turning point).
+4. **Writes** the full record — timestamp, water level, delta, trend, and quality flag — to DynamoDB.
+5. **Rebuilds** `data.csv` and `plot.png` from all accumulated records and uploads both to the public S3 website bucket.
+
+The pod exits after each run; no process stays resident between collections. AWS credentials are never stored in the container image or YAML — the EC2 instance's IAM role grants the pod permission to access S3 and DynamoDB automatically via the instance metadata service.
+
+### Output Data and Plot
+
+**`data.csv`** contains one row per hourly reading with the following columns:
+
+| Column | Description |
+|---|---|
+| `timestamp` | ISO 8601 UTC time of the reading |
+| `water_level_m` | Observed water level in meters (MLLW datum) |
+| `delta_m` | Change in water level since the previous reading |
+| `trend` | `RISING`, `FALLING`, or `SLACK` |
+| `station_id` | NOAA station identifier (`8518750`) |
+| `station_name` | Human-readable station name |
+
+**`plot.png`** is a time-series line chart of water level over the full collection window. The characteristic semi-diurnal tidal pattern is clearly visible — two high tides and two low tides approximately every 24 hours, with a tidal range of roughly 1.5 m at The Battery. The plot updates on every pipeline run so it always reflects the latest data.
+
+- Plot: `http://ygu6ax-data-project-2.s3-website-us-east-1.amazonaws.com/plot.png`
+- Data: `http://ygu6ax-data-project-2.s3-website-us-east-1.amazonaws.com/data.csv`
+
+
+
+
+
+
+
+
+## Instructions
+
+
 Create, schedule, and run a containerized data pipeline in Kubernetes.
 
 ## Overview
