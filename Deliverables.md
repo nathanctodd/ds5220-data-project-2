@@ -1,5 +1,6 @@
 S3 URL for Deliverables: http://ygu6ax-data-project-2.s3-website-us-east-1.amazonaws.com/plot.png
 
+S3 URL for CSV data: http://ygu6ax-data-project-2.s3-website-us-east-1.amazonaws.com/data.csv
 
 Repo URL: https://github.com/nathanctodd/ds5220-data-project-2#
 
